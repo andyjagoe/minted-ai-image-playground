@@ -138,7 +138,7 @@ export default function Home() {
         <section className="container grid items-center gap-6 pb-8 pt-16 md:py-24">
           <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              What image can I create for you?
+              What can I create for you?
             </h1>
             <p className="max-w-[700px] text-muted-foreground md:text-xl">
               Upload an image to get started, then describe how you want to transform it
