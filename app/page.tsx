@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ImageIcon, Wand2, Layers, Scissors, X, Copy, Download } from "lucide-react"
+import { ImageIcon, Wand2, Layers, Scissors, Trash2, Copy, Download } from "lucide-react"
 import { ImageUploader } from "@/components/image-uploader"
 
 export default function Home() {
@@ -15,6 +15,8 @@ export default function Home() {
   const [isTransforming, setIsTransforming] = useState(false)
   const [isConverting, setIsConverting] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
+  const [isTransformed, setIsTransformed] = useState(false)
+  const transformedImageRef = useRef<HTMLDivElement>(null)
 
   const handleImageUpload = async (imageDataUrl: string) => {
     // Check if the image is HEIC
@@ -61,6 +63,16 @@ export default function Home() {
     if (!uploadedImage || !prompt.trim()) return
 
     setIsTransforming(true)
+    setIsTransformed(true)
+    
+    // Scroll to the transformed image section
+    setTimeout(() => {
+      transformedImageRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }, 100)
+
     try {
       const response = await fetch("/api/transform", {
         method: "POST",
@@ -81,10 +93,15 @@ export default function Home() {
       setTransformedImage(result.data.image)
     } catch (error) {
       console.error("Error transforming image:", error)
-      // You might want to add proper error handling UI here
+      setIsTransformed(false)
     } finally {
       setIsTransforming(false)
     }
+  }
+
+  const handleRemoveTransformedImage = () => {
+    setTransformedImage(null)
+    setIsTransformed(false)
   }
 
   const handleCopyImage = async () => {
@@ -154,10 +171,10 @@ export default function Home() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-8 w-8 rounded-full bg-destructive/90 hover:bg-destructive"
                       onClick={handleRemoveImage}
                     >
-                      <X className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 text-destructive-foreground" />
                       <span className="sr-only">Remove image</span>
                     </Button>
                   </div>
@@ -202,11 +219,12 @@ export default function Home() {
                         handleTransform()
                       }
                     }}
+                    disabled={isTransformed}
                   />
                   <Button 
                     className="absolute right-1.5 top-1.5 h-11 w-11 rounded-full p-0"
                     onClick={handleTransform}
-                    disabled={isTransforming || !prompt.trim()}
+                    disabled={isTransforming || !prompt.trim() || isTransformed}
                   >
                     <Wand2 className="h-5 w-5" />
                     <span className="sr-only">Transform</span>
@@ -214,18 +232,28 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 gap-1.5"
+                    disabled={isTransformed}
+                  >
                     <Layers className="h-4 w-4" />
                     Create Variations
                   </Button>
-                  <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 gap-1.5"
+                    disabled={isTransformed}
+                  >
                     <Scissors className="h-4 w-4" />
                     Edit Image
                   </Button>
                 </div>
 
                 {(isTransforming || transformedImage) && (
-                  <div className="mt-8 space-y-4">
+                  <div ref={transformedImageRef} className="mt-8 space-y-4">
                     <h2 className="text-2xl font-semibold text-center">
                       {isTransforming ? "Transforming..." : "Transformed Image"}
                     </h2>
@@ -275,6 +303,15 @@ export default function Home() {
                             >
                               <Download className="h-4 w-4" />
                               <span className="sr-only">Download image</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="h-8 w-8 rounded-full bg-destructive/90 hover:bg-destructive"
+                              onClick={handleRemoveTransformedImage}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive-foreground" />
+                              <span className="sr-only">Remove transformed image</span>
                             </Button>
                           </div>
                           {isCopied && (
