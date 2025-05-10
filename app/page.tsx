@@ -257,11 +257,35 @@ export default function Home() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Disney Style")}>
+                        Disney Style
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Pixar")}>
+                        Pixar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Anime Style")}>
+                        Anime Style
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStyleConvert("Ghibli")}>
                         Ghibli
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleStyleConvert("Muppet")}>
-                        Muppet
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Cyberpunk Neon")}>
+                        Cyberpunk Neon
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Watercolor Painting")}>
+                        Watercolor Painting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Baroque Oil Painting")}>
+                        Baroque Oil Painting
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Retro Pixel Art")}>
+                        Retro Pixel Art
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Vaporwave Aesthetic")}>
+                        Vaporwave Aesthetic
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Surrealist Art")}>
+                        Surrealist Art
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStyleConvert("Simpsons")}>
                         Simpsons
@@ -269,11 +293,11 @@ export default function Home() {
                       <DropdownMenuItem onClick={() => handleStyleConvert("Family Guy")}>
                         Family Guy
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Muppet")}>
+                        Muppet
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStyleConvert("Hérge")}>
                         Hérge
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleStyleConvert("Pixar")}>
-                        Pixar
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
