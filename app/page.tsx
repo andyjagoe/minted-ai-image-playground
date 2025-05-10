@@ -5,7 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ImageIcon, Wand2, Layers, Scissors, Trash2, Copy, Download } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ImageIcon, Wand2, Layers, Scissors, Trash2, Copy, Download, Palette } from "lucide-react"
 import { ImageUploader } from "@/components/image-uploader"
 
 export default function Home() {
@@ -59,8 +65,8 @@ export default function Home() {
     setTransformedImage(null)
   }
 
-  const handleTransform = async () => {
-    if (!uploadedImage || !prompt.trim()) return
+  const handleTransform = async (style?: string) => {
+    if (!uploadedImage) return
 
     setIsTransforming(true)
     setIsTransformed(true)
@@ -81,7 +87,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           image: uploadedImage,
-          prompt: prompt.trim(),
+          prompt: style ? `Convert this image to ${style} style` : prompt.trim(),
         }),
       })
 
@@ -140,6 +146,12 @@ export default function Home() {
       console.error('Failed to download image:', error);
     }
   };
+
+  const handleStyleConvert = (style: string) => {
+    if (!uploadedImage) return
+    setPrompt(`Convert this image to ${style} style`)
+    handleTransform(style)
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -223,7 +235,7 @@ export default function Home() {
                   />
                   <Button 
                     className="absolute right-1.5 top-1.5 h-11 w-11 rounded-full p-0"
-                    onClick={handleTransform}
+                    onClick={() => handleTransform()}
                     disabled={isTransforming || !prompt.trim() || isTransformed}
                   >
                     <Wand2 className="h-5 w-5" />
@@ -232,15 +244,39 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-9 gap-1.5"
-                    disabled={isTransformed}
-                  >
-                    <Layers className="h-4 w-4" />
-                    Create Variations
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-9 gap-1.5"
+                        disabled={isTransformed}
+                      >
+                        <Palette className="h-4 w-4" />
+                        Convert to Style
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Ghibli")}>
+                        Ghibli
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Muppet")}>
+                        Muppet
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Simpsons")}>
+                        Simpsons
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Family Guy")}>
+                        Family Guy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Hérge")}>
+                        Hérge
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStyleConvert("Pixar")}>
+                        Pixar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button 
                     variant="outline" 
                     size="sm" 
