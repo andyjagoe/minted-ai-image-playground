@@ -63,6 +63,8 @@ export default function Home() {
   const handleRemoveImage = () => {
     setUploadedImage(null)
     setTransformedImage(null)
+    setIsTransformed(false)
+    setPrompt("")
   }
 
   const handleTransform = async (style?: string) => {
