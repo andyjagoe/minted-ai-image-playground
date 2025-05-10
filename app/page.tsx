@@ -14,7 +14,7 @@ export default function Home() {
   const [isTransforming, setIsTransforming] = useState(false)
   const [transformingIndex, setTransformingIndex] = useState<number | null>(null)
   const [isConverting, setIsConverting] = useState(false)
-  const transformedImageRef = useRef<HTMLDivElement>(null)
+  const transformedImageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const handleImageUpload = async (imageDataUrl: string) => {
     const isHeic = imageDataUrl.includes("data:image/heic") || imageDataUrl.includes("data:image/heif")
@@ -68,13 +68,24 @@ export default function Home() {
       return
     }
 
+    // Update the prompt for the current transformation if using style
+    if (style && index !== undefined) {
+      const newPrompts = [...prompts]
+      newPrompts[index + 1] = promptText
+      setPrompts(newPrompts)
+    }
+
     setIsTransforming(true)
     setTransformingIndex(index ?? null)
     
     // Only scroll when adding a new transformation (not when transforming an existing one)
     if (index === undefined || index === transformedImages.length - 1) {
       setTimeout(() => {
-        transformedImageRef.current?.scrollIntoView({ 
+        const targetRef = index === undefined 
+          ? transformedImageRefs.current[0]
+          : transformedImageRefs.current[index + 1]
+        
+        targetRef?.scrollIntoView({ 
           behavior: 'smooth',
           block: 'center'
         })
@@ -101,11 +112,12 @@ export default function Home() {
       if (index === undefined) {
         // First transformation from original image
         setTransformedImages([result.data.image])
-        setPrompts([promptText])
+        setPrompts([prompts[0] || "", promptText])
       } else {
         // Append new transformation to the list
         setTransformedImages(prev => [...prev, result.data.image])
-        setPrompts(prev => [...prev, promptText])
+        // Don't set the prompt for the next transformation yet
+        setPrompts(prev => [...prev, ""])
       }
     } catch (error) {
       console.error("Error transforming image:", error)
@@ -201,26 +213,37 @@ export default function Home() {
                 />
 
                 {(isTransforming || transformedImages.length > 0) && (
-                  <div ref={transformedImageRef} className="space-y-8">
+                  <div className="space-y-8">
                     {transformedImages.map((image, index) => (
-                      <ImageTransformer
+                      <div
                         key={index}
-                        image={image}
-                        prompt={prompts[index + 1] || ""}
-                        isTransforming={isTransforming && transformingIndex === index}
-                        onPromptChange={(value) => handlePromptChange(value, index + 1)}
-                        onTransform={(style) => handleTransform(style, index)}
-                        onRemove={() => handleRemoveTransformedImage(index)}
-                        onCopy={() => handleCopyImage(image)}
-                        onDownload={() => handleDownloadImage(image)}
-                        title={`Transformation ${index + 1}`}
-                        showControls={true}
-                        disabled={index !== transformedImages.length - 1}
-                      />
+                        ref={el => {
+                          transformedImageRefs.current[index] = el
+                        }}
+                      >
+                        <ImageTransformer
+                          image={image}
+                          prompt={prompts[index + 1] || ""}
+                          isTransforming={isTransforming && transformingIndex === index}
+                          onPromptChange={(value) => handlePromptChange(value, index + 1)}
+                          onTransform={(style) => handleTransform(style, index)}
+                          onRemove={() => handleRemoveTransformedImage(index)}
+                          onCopy={() => handleCopyImage(image)}
+                          onDownload={() => handleDownloadImage(image)}
+                          title={`Transformation ${index + 1}`}
+                          showControls={true}
+                          disabled={index !== transformedImages.length - 1}
+                        />
+                      </div>
                     ))}
 
                     {isTransforming && (
-                      <div className="space-y-4">
+                      <div 
+                        ref={el => {
+                          transformedImageRefs.current[transformedImages.length] = el
+                        }}
+                        className="space-y-4"
+                      >
                         <h2 className="text-2xl font-semibold text-center">
                           Transforming...
                         </h2>
