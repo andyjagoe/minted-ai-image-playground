@@ -163,9 +163,9 @@ export default function Home() {
           </Link>
         </div>
       </header>
-      <main className="flex-1">
-        <section className="container grid items-center gap-6 pb-8 pt-16 md:py-24">
-          <div className="mx-auto flex max-w-[980px] flex-col items-center gap-4 text-center">
+      <main className="flex-1 flex flex-col items-center">
+        <section className="container flex flex-col items-center gap-6 pb-8 pt-16 md:py-24 w-full max-w-[1200px]">
+          <div className="flex flex-col items-center gap-4 text-center w-full">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
               What can I create for you?
             </h1>
@@ -173,7 +173,7 @@ export default function Home() {
               Upload an image to get started, then describe how you want to transform it
             </p>
           </div>
-          <div className="mx-auto w-full max-w-[800px]">
+          <div className="w-full max-w-[800px]">
             {!uploadedImage ? (
               <ImageUploader onImageUpload={handleImageUpload} />
             ) : (
