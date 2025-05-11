@@ -26,10 +26,23 @@ export async function POST(request: Request) {
       type: "image/png",
     });
 
+    console.log('Debug: Sending request to OpenAI with:', {
+      hasImage: !!imageFile,
+      imageSize: imageBuffer.length,
+      prompt,
+      model: 'gpt-image-1'
+    });
+
     const response = await openai.images.edit({
       model: "gpt-image-1",
       image: imageFile,
       prompt: prompt,
+    });
+
+    console.log('Debug: Received response from OpenAI:', {
+      hasData: !!response?.data,
+      dataLength: response?.data?.length,
+      hasB64Json: !!response?.data?.[0]?.b64_json
     });
 
     // Type guard to ensure response data exists and has the expected structure

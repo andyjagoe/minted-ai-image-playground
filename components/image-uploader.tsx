@@ -1,108 +1,136 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, ImageIcon } from "lucide-react"
+import { ImageIcon } from "lucide-react"
 
 interface ImageUploaderProps {
-  onImageUpload: (imageDataUrl: string) => void
+  onImageUpload: (imageDataUrl: string) => Promise<void>
+  onError?: (error: Error) => void
 }
 
-export function ImageUploader({ onImageUpload }: ImageUploaderProps) {
-  const [isDragging, setIsDragging] = useState(false)
+export function ImageUploader({ onImageUpload, onError }: ImageUploaderProps) {
   const [isConverting, setIsConverting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+  const handleFileSelect = async (file: File) => {
+    if (!file) return
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const processFile = async (file: File) => {
     try {
-      // Create a FileReader to read the file
-      const reader = new FileReader()
+      const imageDataUrl = await readFileAsDataURL(file)
+      const isHeic = imageDataUrl.includes("data:image/heic") || imageDataUrl.includes("data:image/heif")
       
-      reader.onload = (e) => {
-        const result = e.target?.result
-        if (typeof result === "string") {
-          onImageUpload(result)
+      if (isHeic) {
+        setIsConverting(true)
+        try {
+          const response = await fetch("/api/convert", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              image: imageDataUrl,
+            }),
+          })
+
+          const result = await response.json()
+          if (result.error) {
+            throw new Error(result.error)
+          }
+
+          await onImageUpload(result.data.image)
+        } catch (error) {
+          console.error("Error converting HEIC:", error)
+          onError?.(error instanceof Error ? error : new Error("Failed to convert HEIC image"))
+        } finally {
+          setIsConverting(false)
         }
+      } else {
+        await onImageUpload(imageDataUrl)
       }
-
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error)
-        throw new Error("Failed to read file")
-      }
-
-      reader.readAsDataURL(file)
     } catch (error) {
-      console.error("Error in processFile:", error)
+      console.error("Error reading file:", error)
+      onError?.(error instanceof Error ? error : new Error("Failed to read image file"))
     }
   }
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleFileSelect(file)
+    }
+  }
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
     setIsDragging(false)
 
-    const file = e.dataTransfer.files[0]
-    if (file && file.type.startsWith("image/")) {
-      await processFile(file)
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      handleFileSelect(file)
     }
-  }
-
-  const handleButtonClick = () => {
-    fileInputRef.current?.click()
-  }
-
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type.startsWith("image/")) {
-      await processFile(file)
-    }
-  }
+  }, [])
 
   return (
-    <div
-      className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 transition-colors ${
-        isDragging ? "border-primary bg-primary/5" : "border-border"
+    <div 
+      className={`flex flex-col items-center gap-4 p-8 border-2 border-dashed rounded-lg transition-colors ${
+        isDragging ? 'border-primary bg-primary/5' : 'border-border'
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="mb-4 rounded-full bg-primary/10 p-3">
-        <ImageIcon className="h-8 w-8 text-primary" />
+      <div className="flex flex-col items-center gap-2 text-center">
+        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Click to upload or drag and drop</p>
+          <p className="text-xs text-muted-foreground">
+            PNG, JPG, HEIC up to 10MB
+          </p>
+        </div>
       </div>
-      <h3 className="mb-2 text-xl font-medium">
-        Upload an image
-      </h3>
-      <p className="mb-6 text-center text-sm text-muted-foreground">
-        Drag and drop an image, or click to browse
-      </p>
-      <Button 
-        onClick={handleButtonClick} 
-        className="gap-2"
-      >
-        <Upload className="h-4 w-4" />
-        Browse Files
-      </Button>
-      <input 
-        ref={fileInputRef} 
-        type="file" 
-        accept="image/*,.heic" 
-        className="hidden" 
-        onChange={handleFileInput}
-      />
-      <p className="mt-4 text-xs text-muted-foreground">
-        Supported formats: JPG, PNG, GIF, WEBP, HEIC
-      </p>
+      {isConverting ? (
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Converting your image...</p>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          className="relative"
+        >
+          Select Image
+          <input
+            type="file"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            accept="image/png,image/jpeg,image/heic,image/heif"
+            onChange={handleInputChange}
+          />
+        </Button>
+      )}
     </div>
   )
+}
+
+function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }

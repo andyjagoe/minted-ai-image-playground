@@ -1,106 +1,71 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { ImageIcon } from "lucide-react"
 import { ImageUploader } from "@/components/image-uploader"
 import { ImageTransformer } from "@/components/image-transformer"
+import { TransformedImages } from "@/components/transformed-images"
+import { TransformationType, TRANSFORMATION_CONFIGS, Rect } from "@/lib/types/transformations"
 
 export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [transformedImages, setTransformedImages] = useState<string[]>([])
-  const [prompts, setPrompts] = useState<string[]>([])
   const [isTransforming, setIsTransforming] = useState(false)
   const [transformingIndex, setTransformingIndex] = useState<number | null>(null)
-  const [isConverting, setIsConverting] = useState(false)
-  const transformedImageRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const handleImageUpload = async (imageDataUrl: string) => {
-    const isHeic = imageDataUrl.includes("data:image/heic") || imageDataUrl.includes("data:image/heif")
-    
-    if (isHeic) {
-      setIsConverting(true)
-      setUploadedImage(imageDataUrl)
-      try {
-        const response = await fetch("/api/convert", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            image: imageDataUrl,
-          }),
-        })
-
-        const result = await response.json()
-        if (result.error) {
-          throw new Error(result.error)
-        }
-
-        setUploadedImage(result.data.image)
-      } catch (error) {
-        console.error("Error converting HEIC:", error)
-      } finally {
-        setIsConverting(false)
-      }
-    } else {
-      setUploadedImage(imageDataUrl)
-    }
+    setUploadedImage(imageDataUrl)
     setTransformedImages([])
-    setPrompts([])
   }
 
-  const handleTransform = async (style?: string, index?: number) => {
+  const handleTransform = async (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, editedImage?: string, index?: number) => {
     const sourceImage = index === undefined 
       ? uploadedImage 
       : transformedImages[index]
     
     if (!sourceImage) return
 
-    // Get the appropriate prompt based on whether we're using a style or custom prompt
-    const promptText = style 
-      ? `Convert this image to ${style} style`
-      : prompts[index ?? 0]?.trim()
+    // If we have an edited image, use it directly
+    if (editedImage) {
+      console.log('Debug: handleTransform received edited image:', {
+        index,
+        hasImage: !!editedImage,
+        imageLength: editedImage.length,
+        currentTransformedImages: transformedImages.length
+      });
 
-    if (!promptText) {
-      console.error("No prompt provided")
+      // Always append the edited image as a new transformation
+      setTransformedImages(prev => [...prev, editedImage])
       return
     }
 
-    // Update the prompt for the current transformation if using style
-    if (style && index !== undefined) {
-      const newPrompts = [...prompts]
-      newPrompts[index + 1] = promptText
-      setPrompts(newPrompts)
-    }
+    const config = TRANSFORMATION_CONFIGS[type]
+    console.log('Debug: handleTransform values:', {
+      type,
+      prompt,
+      rect,
+      hasPrompt: !!prompt,
+      hasRect: !!rect,
+      requiresPrompt: config.requiresPrompt,
+      requiresRect: config.requiresRect,
+      sourceImage: !!sourceImage
+    })
 
     setIsTransforming(true)
     setTransformingIndex(index ?? null)
-    
-    // Only scroll when adding a new transformation (not when transforming an existing one)
-    if (index === undefined || index === transformedImages.length - 1) {
-      setTimeout(() => {
-        const targetRef = index === undefined 
-          ? transformedImageRefs.current[0]
-          : transformedImageRefs.current[index + 1]
-        
-        targetRef?.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'center'
-        })
-      }, 100)
-    }
 
     try {
-      const response = await fetch("/api/transform", {
+      const response = await fetch(config.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           image: sourceImage,
-          prompt: promptText,
+          prompt,
+          mask,
+          rect,
         }),
       })
 
@@ -109,18 +74,14 @@ export default function Home() {
         throw new Error(result.error)
       }
 
-      if (index === undefined) {
-        // First transformation from original image
-        setTransformedImages([result.data.image])
-        setPrompts([prompts[0] || "", promptText])
-      } else {
-        // Append new transformation to the list
-        setTransformedImages(prev => [...prev, result.data.image])
-        // Don't set the prompt for the next transformation yet
-        setPrompts(prev => [...prev, ""])
+      if (!result.data || !result.data.image) {
+        throw new Error('Invalid response format from server')
       }
+
+      // Add the transformed image to the array
+      setTransformedImages(prev => [...prev, result.data.image])
     } catch (error) {
-      console.error("Error transforming image:", error)
+      console.error(`Error ${type}ing image:`, error)
     } finally {
       setIsTransforming(false)
       setTransformingIndex(null)
@@ -131,11 +92,42 @@ export default function Home() {
     try {
       const response = await fetch(image)
       const blob = await response.blob()
+      
+      // Create a canvas to convert the image to PNG
+      const img = new Image()
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      
+      // Wait for the image to load
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+        img.src = URL.createObjectURL(blob)
+      })
+      
+      // Set canvas dimensions to match the image
+      canvas.width = img.width
+      canvas.height = img.height
+      
+      // Draw the image on the canvas
+      ctx?.drawImage(img, 0, 0)
+      
+      // Convert canvas to PNG blob
+      const pngBlob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob!)
+        }, 'image/png')
+      })
+      
+      // Copy the PNG blob to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
-          [blob.type]: blob
+          'image/png': pngBlob
         })
       ])
+      
+      // Clean up
+      URL.revokeObjectURL(img.src)
     } catch (error) {
       console.error('Failed to copy image:', error)
     }
@@ -158,16 +150,8 @@ export default function Home() {
     }
   }
 
-  const handlePromptChange = (value: string, index: number) => {
-    const newPrompts = [...prompts]
-    newPrompts[index] = value
-    setPrompts(newPrompts)
-  }
-
   const handleRemoveTransformedImage = (index: number) => {
-    // Remove the selected image and all subsequent images
     setTransformedImages(prev => prev.slice(0, index))
-    setPrompts(prev => prev.slice(0, index + 1))
   }
 
   return (
@@ -192,20 +176,20 @@ export default function Home() {
           </div>
           <div className="w-full max-w-[800px]">
             {!uploadedImage ? (
-              <ImageUploader onImageUpload={handleImageUpload} />
+              <ImageUploader 
+                onImageUpload={handleImageUpload}
+                onError={(error) => console.error("Upload error:", error)}
+              />
             ) : (
               <div className="space-y-8">
                 <ImageTransformer
                   image={uploadedImage}
-                  prompt={prompts[0] || ""}
+                  showControls={true}
                   isTransforming={isTransforming && transformingIndex === null}
-                  isConverting={isConverting}
-                  onPromptChange={(value) => handlePromptChange(value, 0)}
-                  onTransform={(style) => handleTransform(style)}
+                  onTransform={(type, prompt, mask, rect) => handleTransform(type, prompt, mask, rect)}
                   onRemove={() => {
                     setUploadedImage(null)
                     setTransformedImages([])
-                    setPrompts([])
                   }}
                   onCopy={() => handleCopyImage(uploadedImage)}
                   onDownload={() => handleDownloadImage(uploadedImage)}
@@ -213,61 +197,16 @@ export default function Home() {
                 />
 
                 {(isTransforming || transformedImages.length > 0) && (
-                  <div className="space-y-8">
-                    {transformedImages.map((image, index) => (
-                      <div
-                        key={index}
-                        ref={el => {
-                          transformedImageRefs.current[index] = el
-                        }}
-                      >
-                        <ImageTransformer
-                          image={image}
-                          prompt={prompts[index + 1] || ""}
-                          isTransforming={isTransforming && transformingIndex === index}
-                          onPromptChange={(value) => handlePromptChange(value, index + 1)}
-                          onTransform={(style) => handleTransform(style, index)}
-                          onRemove={() => handleRemoveTransformedImage(index)}
-                          onCopy={() => handleCopyImage(image)}
-                          onDownload={() => handleDownloadImage(image)}
-                          title={`Transformation ${index + 1}`}
-                          showControls={true}
-                          disabled={index !== transformedImages.length - 1}
-                        />
-                      </div>
-                    ))}
-
-                    {isTransforming && (
-                      <div 
-                        ref={el => {
-                          transformedImageRefs.current[transformedImages.length] = el
-                        }}
-                        className="space-y-4"
-                      >
-                        <h2 className="text-2xl font-semibold text-center">
-                          Transforming...
-                        </h2>
-                        <div className="relative rounded-lg border border-border overflow-hidden">
-                          <Image
-                            src={transformingIndex === null 
-                              ? uploadedImage 
-                              : transformedImages[transformingIndex]}
-                            alt="Original image"
-                            width={800}
-                            height={500}
-                            className="w-full h-auto max-h-[500px] object-contain blur-sm"
-                            unoptimized
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-                            <div className="flex flex-col items-center gap-2">
-                              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                              <p className="text-sm text-muted-foreground">Transforming your image...</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <TransformedImages
+                    images={transformedImages}
+                    isTransforming={isTransforming}
+                    transformingIndex={transformingIndex}
+                    uploadedImage={uploadedImage}
+                    onTransform={handleTransform}
+                    onRemove={handleRemoveTransformedImage}
+                    onCopy={handleCopyImage}
+                    onDownload={handleDownloadImage}
+                  />
                 )}
               </div>
             )}
