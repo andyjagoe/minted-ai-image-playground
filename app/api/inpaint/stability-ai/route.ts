@@ -186,7 +186,22 @@ async function generateMask(imageBuffer: Buffer, rect: Rect): Promise<Buffer> {
 
 export async function POST(request: Request) {
   try {
-    const { image, prompt, rect } = await request.json();
+    // Log request headers for debugging
+    console.log('Debug: Request headers:', {
+      'content-length': request.headers.get('content-length'),
+      'content-type': request.headers.get('content-type')
+    });
+
+    const body = await request.json();
+    
+    // Log the size of the incoming request body
+    const bodySize = JSON.stringify(body).length;
+    console.log('Debug: Request body size:', {
+      sizeInBytes: bodySize,
+      sizeInMB: bodySize / (1024 * 1024)
+    });
+
+    const { image, prompt, rect } = body;
 
     if (!image || !prompt || !rect) {
       return NextResponse.json(
@@ -194,6 +209,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Log the size of the base64 image string
+    console.log('Debug: Base64 image size:', {
+      sizeInBytes: image.length,
+      sizeInMB: image.length / (1024 * 1024)
+    });
 
     if (!STABILITY_API_KEY) {
       throw new Error("STABILITY_API_KEY is not configured");
@@ -209,6 +230,12 @@ export async function POST(request: Request) {
 
     // Convert base64 to buffer
     const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
+    
+    // Log the size of the decoded image buffer
+    console.log('Debug: Decoded image buffer size:', {
+      sizeInBytes: imageBuffer.length,
+      sizeInMB: imageBuffer.length / (1024 * 1024)
+    });
 
     // Validate and get image dimensions
     const { width, height } = await validateImage(imageBuffer);

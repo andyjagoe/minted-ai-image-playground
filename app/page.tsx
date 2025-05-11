@@ -52,6 +52,21 @@ export default function Home() {
       sourceImage: !!sourceImage
     })
 
+    // Log payload size before sending
+    const payload = {
+      image: sourceImage,
+      prompt,
+      mask,
+      rect,
+    }
+    const payloadSize = new Blob([JSON.stringify(payload)]).size
+    console.log('Debug: Request payload size:', {
+      sizeInBytes: payloadSize,
+      sizeInMB: payloadSize / (1024 * 1024),
+      imageSize: sourceImage.length,
+      imageSizeInMB: sourceImage.length / (1024 * 1024)
+    })
+
     setIsTransforming(true)
     setTransformingIndex(index ?? null)
 
@@ -61,13 +76,18 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          image: sourceImage,
-          prompt,
-          mask,
-          rect,
-        }),
+        body: JSON.stringify(payload),
       })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Debug: Server response error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        })
+        throw new Error(`Server error: ${response.status} ${response.statusText}`)
+      }
 
       const result = await response.json()
       if (result.error) {
