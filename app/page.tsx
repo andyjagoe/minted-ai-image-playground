@@ -171,7 +171,7 @@ export default function Home() {
               What can I create for you?
             </h1>
             <p className="max-w-[700px] text-muted-foreground md:text-xl">
-              Upload an image to get started, then describe how you want to transform it
+              Upload an image, then describe how you want to transform it
             </p>
           </div>
           <div className="w-full max-w-[800px]">
