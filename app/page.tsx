@@ -52,24 +52,20 @@ export default function Home() {
       sourceImage: !!sourceImage
     })
 
-    // Create a Blob from the payload
+    // Log payload size before sending
     const payload = {
       image: sourceImage,
       prompt,
       mask,
       rect,
-    };
-    
-    const blob = new Blob([JSON.stringify(payload)], {
-      type: 'application/json'
-    });
-
+    }
+    const payloadSize = new Blob([JSON.stringify(payload)]).size
     console.log('Debug: Request payload size:', {
-      sizeInBytes: blob.size,
-      sizeInMB: blob.size / (1024 * 1024),
+      sizeInBytes: payloadSize,
+      sizeInMB: payloadSize / (1024 * 1024),
       imageSize: sourceImage.length,
       imageSizeInMB: sourceImage.length / (1024 * 1024)
-    });
+    })
 
     setIsTransforming(true)
     setTransformingIndex(index ?? null)
@@ -80,8 +76,8 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: blob
-      });
+        body: JSON.stringify(payload),
+      })
 
       if (!response.ok) {
         const errorText = await response.text()
