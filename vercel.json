@@ -3,5 +3,8 @@
     "app/api/**/*.ts": {
       "memory": 3009
     }
+  },
+  "bodyParser": {
+    "sizeLimit": "50mb"
   }
 } 
