@@ -1,9 +1,7 @@
 export const maxDuration = 300;
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
+    bodyParser: false, // Keep bodyParser disabled for streaming
   },
 };
 
@@ -189,17 +187,44 @@ export async function POST(request: Request) {
     // Log request headers for debugging
     console.log('Debug: Request headers:', {
       'content-length': request.headers.get('content-length'),
-      'content-type': request.headers.get('content-type')
+      'content-type': request.headers.get('content-type'),
+      'transfer-encoding': request.headers.get('transfer-encoding')
     });
 
-    const body = await request.json();
+    // Get the request body as a stream
+    const reader = request.body?.getReader();
+    if (!reader) {
+      throw new Error('Request body is not readable');
+    }
+
+    // Read the stream
+    const chunks: Uint8Array[] = [];
+    let totalSize = 0;
+    let lastLogTime = Date.now();
     
-    // Log the size of the incoming request body
-    const bodySize = JSON.stringify(body).length;
-    console.log('Debug: Request body size:', {
-      sizeInBytes: bodySize,
-      sizeInMB: bodySize / (1024 * 1024)
-    });
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      chunks.push(value);
+      totalSize += value.length;
+      
+      // Log progress every 500ms to avoid console spam
+      const now = Date.now();
+      if (now - lastLogTime > 500) {
+        console.log('Debug: Received chunk:', {
+          chunkSize: value.length,
+          totalSize,
+          totalSizeMB: totalSize / (1024 * 1024)
+        });
+        lastLogTime = now;
+      }
+    }
+
+    // Combine chunks into a single buffer and parse JSON
+    const bodyBuffer = Buffer.concat(chunks);
+    const bodyText = new TextDecoder().decode(bodyBuffer);
+    const body = JSON.parse(bodyText);
 
     const { image, prompt, rect } = body;
 
