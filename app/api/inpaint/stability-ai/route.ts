@@ -1,3 +1,12 @@
+export const maxDuration = 300;
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
+
 import { NextResponse } from "next/server";
 import sharp from 'sharp';
 import FormData from "form-data";
