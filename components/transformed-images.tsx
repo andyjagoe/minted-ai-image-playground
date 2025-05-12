@@ -13,6 +13,7 @@ interface TransformedImagesProps {
   onRemove: (index: number) => void
   onCopy: (image: string) => void
   onDownload: (image: string) => void
+  error?: string | null
 }
 
 export function TransformedImages({
@@ -24,6 +25,7 @@ export function TransformedImages({
   onRemove,
   onCopy,
   onDownload,
+  error = null,
 }: TransformedImagesProps) {
   const lastImageRef = useRef<HTMLDivElement>(null)
 
@@ -67,6 +69,7 @@ export function TransformedImages({
             onRemove={() => onRemove(index)}
             onCopy={() => onCopy(image)}
             onDownload={() => onDownload(image)}
+            error={transformingIndex === index ? error : null}
           />
         </div>
       ))}

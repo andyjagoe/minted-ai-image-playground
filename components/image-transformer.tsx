@@ -31,6 +31,7 @@ interface ImageTransformerProps {
   onCopy?: () => void
   onDownload?: () => void
   isLastImage?: boolean
+  error?: string | null
 }
 
 export function ImageTransformer({
@@ -44,6 +45,7 @@ export function ImageTransformer({
   onCopy,
   onDownload,
   isLastImage = false,
+  error = null,
 }: ImageTransformerProps) {
   const [prompt, setPrompt] = useState("")
   const [isCopied, setIsCopied] = useState(false)
@@ -405,6 +407,12 @@ export function ImageTransformer({
           </div>
         )}
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
 
       <Dialog open={isAddItemModalOpen} onOpenChange={setIsAddItemModalOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">

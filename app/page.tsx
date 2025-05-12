@@ -13,13 +13,36 @@ export default function Home() {
   const [transformedImages, setTransformedImages] = useState<string[]>([])
   const [isTransforming, setIsTransforming] = useState(false)
   const [transformingIndex, setTransformingIndex] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleImageUpload = async (imageDataUrl: string) => {
-    setUploadedImage(imageDataUrl)
-    setTransformedImages([])
+    try {
+      // Validate the image data URL
+      if (!imageDataUrl.startsWith('data:image/')) {
+        throw new Error('Invalid image format. Please upload a valid image file.')
+      }
+
+      // Check if the image is too large (e.g., > 10MB)
+      const base64Data = imageDataUrl.split(',')[1]
+      const sizeInBytes = Math.ceil((base64Data.length * 3) / 4)
+      const sizeInMB = sizeInBytes / (1024 * 1024)
+      
+      if (sizeInMB > 10) {
+        throw new Error('Image is too large. Please upload an image smaller than 10MB.')
+      }
+
+      setUploadedImage(imageDataUrl)
+      setTransformedImages([])
+      setError(null)
+    } catch (error) {
+      console.error('Image upload error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to process the uploaded image')
+      setUploadedImage(null)
+    }
   }
 
   const handleTransform = async (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, editedImage?: string, index?: number) => {
+    setError(null) // Clear any previous errors
     const sourceImage = index === undefined 
       ? uploadedImage 
       : transformedImages[index]
@@ -86,7 +109,21 @@ export default function Home() {
           statusText: response.statusText,
           error: errorText
         })
-        throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        
+        // Try to parse the error message from the response
+        let errorMessage = `Server error: ${response.status} ${response.statusText}`
+        try {
+          const errorJson = JSON.parse(errorText)
+          if (errorJson.error) {
+            errorMessage = errorJson.error
+          }
+        } catch (e) {
+          // If parsing fails, use the raw error text if it's not empty
+          if (errorText) {
+            errorMessage = errorText
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()
@@ -100,11 +137,16 @@ export default function Home() {
 
       // Add the transformed image to the array
       setTransformedImages(prev => [...prev, result.data.image])
+      setError(null) // Clear error on success
     } catch (error) {
       console.error(`Error ${type}ing image:`, error)
+      setError(error instanceof Error ? error.message : 'An error occurred during transformation')
     } finally {
       setIsTransforming(false)
-      setTransformingIndex(null)
+      // Only clear transformingIndex if there's no error
+      if (!error) {
+        setTransformingIndex(null)
+      }
     }
   }
 
@@ -172,6 +214,7 @@ export default function Home() {
 
   const handleRemoveTransformedImage = (index: number) => {
     setTransformedImages(prev => prev.slice(0, index))
+    setError(null) // Clear error when removing images
   }
 
   return (
@@ -196,10 +239,20 @@ export default function Home() {
           </div>
           <div className="w-full max-w-[800px]">
             {!uploadedImage ? (
-              <ImageUploader 
-                onImageUpload={handleImageUpload}
-                onError={(error) => console.error("Upload error:", error)}
-              />
+              <div className="space-y-4">
+                <ImageUploader 
+                  onImageUpload={handleImageUpload}
+                  onError={(error) => {
+                    console.error("Upload error:", error)
+                    setError(error instanceof Error ? error.message : String(error))
+                  }}
+                />
+                {error && (
+                  <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="space-y-8">
                 <ImageTransformer
@@ -210,10 +263,12 @@ export default function Home() {
                   onRemove={() => {
                     setUploadedImage(null)
                     setTransformedImages([])
+                    setError(null)
                   }}
                   onCopy={() => handleCopyImage(uploadedImage)}
                   onDownload={() => handleDownloadImage(uploadedImage)}
                   disabled={transformedImages.length > 0}
+                  error={transformingIndex === null ? error : null}
                 />
 
                 {(isTransforming || transformedImages.length > 0) && (
@@ -226,6 +281,7 @@ export default function Home() {
                     onRemove={handleRemoveTransformedImage}
                     onCopy={handleCopyImage}
                     onDownload={handleDownloadImage}
+                    error={error}
                   />
                 )}
               </div>
