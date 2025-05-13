@@ -4,9 +4,9 @@ A Next.js application that provides AI-powered image manipulation capabilities u
 
 ## Features
 
-- Image inpainting using Stability AI
-- Image transformation using GPT-4 Vision
-- Image auto-enhancement using Gemini 2.0
+- Image inpainting using Stable Diffusion 3.0/3.5 (via Stability AI)
+- Image transformation using OpenAI's gpt-image-1
+- Image auto-enhancement using Gemini's gemini-2.0-flash-preview-image-generation
 - Basic image manipulation (mirroring)
 - HEIC to JPEG conversion
 - Automatic image resizing and optimization
