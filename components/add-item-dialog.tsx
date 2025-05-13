@@ -39,7 +39,7 @@ export function AddItemDialog({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current
     const img = imageRef.current
     if (!canvas || !img) return
@@ -48,14 +48,18 @@ export function AddItemDialog({
     const scaleX = img.width / bounds.width
     const scaleY = img.height / bounds.height
 
-    const startX = (e.clientX - bounds.left) * scaleX
-    const startY = (e.clientY - bounds.top) * scaleY
+    // Get coordinates from either mouse or touch event
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+    const startX = (clientX - bounds.left) * scaleX
+    const startY = (clientY - bounds.top) * scaleY
 
     setRect({ x: startX, y: startY, width: 0, height: 0 })
     setIsDrawing(true)
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing || !rect) return
     const canvas = canvasRef.current
     const img = imageRef.current
@@ -65,8 +69,12 @@ export function AddItemDialog({
     const scaleX = img.width / bounds.width
     const scaleY = img.height / bounds.height
 
-    const currentX = (e.clientX - bounds.left) * scaleX
-    const currentY = (e.clientY - bounds.top) * scaleY
+    // Get coordinates from either mouse or touch event
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+    const currentX = (clientX - bounds.left) * scaleX
+    const currentY = (clientY - bounds.top) * scaleY
 
     // Calculate width and height, ensuring they're positive
     const width = Math.abs(currentX - rect.x)
@@ -80,7 +88,7 @@ export function AddItemDialog({
     drawCanvas()
   }
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e?: React.MouseEvent | React.TouchEvent) => {
     setIsDrawing(false)
   }
 
@@ -190,7 +198,10 @@ export function AddItemDialog({
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
-                  style={{ cursor: 'crosshair' }}
+                  onTouchStart={handleMouseDown}
+                  onTouchMove={handleMouseMove}
+                  onTouchEnd={handleMouseUp}
+                  style={{ cursor: 'crosshair', touchAction: 'none' }}
                 />
               </div>
               <div className="absolute top-2 right-2 flex gap-2">
