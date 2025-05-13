@@ -49,8 +49,19 @@ export function AddItemDialog({
     const scaleY = img.height / bounds.height
 
     // Get coordinates from either mouse or touch event
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    let clientX: number
+    let clientY: number
+
+    if ('touches' in e) {
+      // For touch events, prevent default to avoid scrolling
+      e.preventDefault()
+      const touch = e.touches[0]
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+      clientX = e.clientX
+      clientY = e.clientY
+    }
 
     const startX = (clientX - bounds.left) * scaleX
     const startY = (clientY - bounds.top) * scaleY
@@ -65,13 +76,27 @@ export function AddItemDialog({
     const img = imageRef.current
     if (!canvas || !img) return
 
+    // For touch events, prevent default to avoid scrolling
+    if ('touches' in e) {
+      e.preventDefault()
+    }
+
     const bounds = canvas.getBoundingClientRect()
     const scaleX = img.width / bounds.width
     const scaleY = img.height / bounds.height
 
     // Get coordinates from either mouse or touch event
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    let clientX: number
+    let clientY: number
+
+    if ('touches' in e) {
+      const touch = e.touches[0]
+      clientX = touch.clientX
+      clientY = touch.clientY
+    } else {
+      clientX = e.clientX
+      clientY = e.clientY
+    }
 
     const currentX = (clientX - bounds.left) * scaleX
     const currentY = (clientY - bounds.top) * scaleY
@@ -89,6 +114,9 @@ export function AddItemDialog({
   }
 
   const handleMouseUp = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e && 'touches' in e) {
+      e.preventDefault()
+    }
     setIsDrawing(false)
   }
 
@@ -121,7 +149,15 @@ export function AddItemDialog({
 
     // Clear and draw image
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    
+    // Save the current context state
+    ctx.save()
+    
+    // Draw the image
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    
+    // Restore the context state
+    ctx.restore()
 
     // Draw rectangle in display coordinates
     if (rect) {
@@ -150,7 +186,44 @@ export function AddItemDialog({
       setItemToAdd("")
       setRect(null)
       onOpenChange(false)
-      await onAddItem(formattedPrompt, rect)
+      
+      // Get the canvas and create a new image with proper orientation
+      const canvas = canvasRef.current
+      if (!canvas) return
+      
+      // Create a new image from the canvas
+      const newImage = new Image()
+      newImage.src = canvas.toDataURL('image/jpeg')
+      
+      // Wait for the image to load
+      await new Promise((resolve) => {
+        newImage.onload = resolve
+      })
+      
+      // Create a new canvas to handle orientation
+      const tempCanvas = document.createElement('canvas')
+      const tempCtx = tempCanvas.getContext('2d')
+      if (!tempCtx) return
+      
+      // Set dimensions
+      tempCanvas.width = canvas.width
+      tempCanvas.height = canvas.height
+      
+      // Draw the image
+      tempCtx.drawImage(newImage, 0, 0)
+      
+      // Get the base64 data
+      const base64Image = tempCanvas.toDataURL('image/jpeg')
+      
+      // Update the rect coordinates to match the new image orientation
+      const updatedRect = {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height
+      }
+      
+      await onAddItem(formattedPrompt, updatedRect)
     }
   }
 
@@ -190,6 +263,7 @@ export function AddItemDialog({
                 className="w-full h-auto object-contain"
                 style={{ display: 'none' }}
                 onLoad={drawCanvas}
+                crossOrigin="anonymous"
               />
               <div className="overflow-auto border rounded-lg flex items-center justify-center min-h-[300px]">
                 <canvas
@@ -201,7 +275,15 @@ export function AddItemDialog({
                   onTouchStart={handleMouseDown}
                   onTouchMove={handleMouseMove}
                   onTouchEnd={handleMouseUp}
-                  style={{ cursor: 'crosshair', touchAction: 'none' }}
+                  style={{ 
+                    cursor: 'crosshair', 
+                    touchAction: 'none',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                    WebkitTransform: 'translateZ(0)',
+                    transform: 'translateZ(0)'
+                  }}
                 />
               </div>
               <div className="absolute top-2 right-2 flex gap-2">
