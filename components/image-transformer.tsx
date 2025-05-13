@@ -395,6 +395,12 @@ export function ImageTransformer({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
                 <DropdownMenuItem onClick={() => {
+                  onTransform('auto-enhance')
+                }} disabled={disabled || isTransforming || hasTransformed}>
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Auto-Enhance
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
                   const mirrorPrompt = 'Flip the image horizontally'
                   setPrompt(mirrorPrompt)
                   onTransform('mirror', mirrorPrompt)
