@@ -47,37 +47,48 @@ export function SearchReplaceDialog({
           <DialogTitle>Search and Replace</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 overflow-y-auto flex-1">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">What would you like to search for?</label>
-            <Input
-              placeholder="e.g., dog, tree, person..."
-              value={searchPrompt}
-              onChange={(e) => setSearchPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSearchReplace()
-                }
-              }}
-              disabled={disabled || isTransforming || hasTransformed}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">What would you like to replace it with?</label>
-            <Input
-              placeholder="e.g., cat, flower, robot..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSearchReplace()
-                }
-              }}
-              disabled={disabled || isTransforming || hasTransformed}
-            />
+        <div className="space-y-6 overflow-y-auto flex-1 px-1 pb-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="search" className="text-sm font-medium">
+                What do you want to search for?
+              </label>
+              <div className="px-1">
+                <Input
+                  id="search"
+                  placeholder="e.g., a red car"
+                  value={searchPrompt}
+                  onChange={(e) => setSearchPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSearchReplace()
+                    }
+                  }}
+                  disabled={disabled || isTransforming || hasTransformed}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="replace" className="text-sm font-medium">
+                What do you want to replace it with?
+              </label>
+              <div className="px-1">
+                <Input
+                  id="replace"
+                  placeholder="e.g., a blue car"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSearchReplace()
+                    }
+                  }}
+                  disabled={disabled || isTransforming || hasTransformed}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

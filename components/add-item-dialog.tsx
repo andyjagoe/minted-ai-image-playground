@@ -231,71 +231,77 @@ export function AddItemDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>What would you like to add?</DialogTitle>
+          <DialogTitle>Add Item</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 overflow-y-auto flex-1">
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Input
-                placeholder="e.g., a red car, a tree, a person..."
-                value={itemToAdd}
-                onChange={(e) => setItemToAdd(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    handleAddItem()
-                  }
-                }}
-                disabled={disabled || isTransforming || hasTransformed}
-                className="flex-1"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Draw a rectangle where you would like your item</label>
-            <div className="relative">
-              <img
-                ref={imageRef}
-                src={image}
-                alt="Source image"
-                className="w-full h-auto object-contain"
-                style={{ display: 'none' }}
-                onLoad={drawCanvas}
-                crossOrigin="anonymous"
-              />
-              <div className="overflow-auto border rounded-lg flex items-center justify-center min-h-[300px]">
-                <canvas
-                  ref={canvasRef}
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                  onTouchStart={handleMouseDown}
-                  onTouchMove={handleMouseMove}
-                  onTouchEnd={handleMouseUp}
-                  style={{ 
-                    cursor: 'crosshair', 
-                    touchAction: 'none',
-                    WebkitTouchCallout: 'none',
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none',
-                    WebkitTransform: 'translateZ(0)',
-                    transform: 'translateZ(0)'
+        <div className="space-y-6 overflow-y-auto flex-1 px-1 pb-4">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="prompt" className="text-sm font-medium">
+                What would you like to add?
+              </label>
+              <div className="px-1">
+                <Input
+                  id="prompt"
+                  placeholder="e.g., a red car, a tree, a person..."
+                  value={itemToAdd}
+                  onChange={(e) => setItemToAdd(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleAddItem()
+                    }
                   }}
+                  disabled={disabled || isTransforming || hasTransformed}
                 />
               </div>
-              <div className="absolute top-2 right-2 flex gap-2">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={clearMask}
-                  disabled={disabled || isTransforming || hasTransformed}
-                >
-                  <Undo2 className="h-4 w-4" />
-                </Button>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Draw a rectangle around where you want to add it
+              </label>
+              <div className="relative rounded-lg border border-border overflow-hidden">
+                <img
+                  ref={imageRef}
+                  src={image}
+                  alt="Source image"
+                  className="w-full h-auto object-contain"
+                  style={{ display: 'none' }}
+                  onLoad={drawCanvas}
+                  crossOrigin="anonymous"
+                />
+                <div className="overflow-auto border rounded-lg flex items-center justify-center min-h-[300px]">
+                  <canvas
+                    ref={canvasRef}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onTouchStart={handleMouseDown}
+                    onTouchMove={handleMouseMove}
+                    onTouchEnd={handleMouseUp}
+                    style={{ 
+                      cursor: 'crosshair', 
+                      touchAction: 'none',
+                      WebkitTouchCallout: 'none',
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none',
+                      WebkitTransform: 'translateZ(0)',
+                      transform: 'translateZ(0)'
+                    }}
+                  />
+                </div>
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={clearMask}
+                    disabled={disabled || isTransforming || hasTransformed}
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
