@@ -1,11 +1,12 @@
 # Minted AI Image Playground
 
-A Next.js application that provides AI-powered image manipulation capabilities using multiple AI models including Stability AI and OpenAI's GPT-Image-1. This project includes various endpoints for image transformation, inpainting, and basic image manipulation.
+A Next.js application that provides AI-powered image manipulation capabilities using multiple AI models including Stability AI, OpenAI's GPT-4 Vision, and Google's Gemini 2.0. This project includes various endpoints for image transformation, inpainting, and basic image manipulation.
 
 ## Features
 
 - Image inpainting using Stability AI
-- Image transformation using GPT-Image-1
+- Image transformation using GPT-4 Vision
+- Image auto-enhancement using Gemini 2.0
 - Basic image manipulation (mirroring)
 - HEIC to JPEG conversion
 - Automatic image resizing and optimization
@@ -18,6 +19,7 @@ A Next.js application that provides AI-powered image manipulation capabilities u
 - pnpm
 - OpenAI API key
 - Stability AI API key
+- Google Gemini API key
 
 ## Environment Variables
 
@@ -26,6 +28,7 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 STABILITY_API_KEY=your_stability_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ## Installation
@@ -68,7 +71,7 @@ pnpm dev
 }
 ```
 
-### Image Transformation (GPT-Image-1)
+### Image Transformation (GPT-4 Vision)
 
 **Endpoint:** `/api/transform`
 
@@ -81,6 +84,25 @@ pnpm dev
   prompt: string;     // Description of desired changes
 }
 ```
+
+### Image Auto-Enhancement (Gemini 2.0)
+
+**Endpoint:** `/api/auto-enhance/gemini-2.0`
+
+**Method:** `POST`
+
+**Request Body:**
+```typescript
+{
+  image: string;      // Base64 encoded image
+}
+```
+
+The enhancement process includes:
+- Automatic color correction and vibrancy enhancement
+- Sharpness and detail improvement
+- Smart contrast adjustment
+- Noise reduction
 
 ### Image Mirroring
 
