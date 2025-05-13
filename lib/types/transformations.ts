@@ -4,6 +4,7 @@ export type TransformationType =
   | "inpaint" 
   | "auto-enhance"
   | "auto-enhance-sharp"
+  | "search-and-replace"
 
 export interface Rect {
   x: number
@@ -31,15 +32,12 @@ export interface TransformationConfig {
   requiresPrompt: boolean
   requiresMask?: boolean
   requiresRect?: boolean
-}
-
-export const TRANSFORMATION_CONFIGS: Record<TransformationType, {
-  endpoint: string
-  requiresPrompt: boolean
-  requiresRect: boolean
+  requiresSearchPrompt?: boolean
   label: string
   description: string
-}> = {
+}
+
+export const TRANSFORMATION_CONFIGS: Record<TransformationType, TransformationConfig> = {
   transform: {
     endpoint: "/api/transform",
     requiresPrompt: true,
@@ -74,5 +72,13 @@ export const TRANSFORMATION_CONFIGS: Record<TransformationType, {
     requiresRect: false,
     label: "Auto-Enhance (Sharp)",
     description: "Enhance image using Sharp's normalization and sharpening"
+  },
+  "search-and-replace": {
+    endpoint: "/api/search-and-replace",
+    requiresPrompt: true,
+    requiresRect: false,
+    requiresSearchPrompt: true,
+    label: "Search and Replace",
+    description: "Replace objects in the image with AI"
   }
 } 

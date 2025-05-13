@@ -4,7 +4,7 @@ A Next.js application that provides AI-powered image manipulation capabilities u
 
 ## Features
 
-- Image inpainting using Stable Diffusion 3.0/3.5 (via Stability AI)
+- Image inpainting and serach and replace using Stable Diffusion 3.0/3.5 (via Stability AI)
 - Image transformation using OpenAI's gpt-image-1
 - Image auto-enhancement using Gemini's gemini-2.0-flash-preview-image-generation
 - Basic image manipulation (mirroring)
@@ -178,4 +178,56 @@ The API implements comprehensive error handling for:
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+## API Endpoints
+
+### `/api/transform`
+Transforms an image using OpenAI's image editing API.
+
+### `/api/mirror`
+Creates a mirrored version of the image.
+
+### `/api/inpaint/stability-ai`
+Replaces a selected area with AI-generated content using Stability AI's API.
+
+### `/api/auto-enhance/gemini-2.0`
+Automatically enhances image quality and colors using Google's Gemini 2.0 API.
+
+### `/api/auto-enhance/sharp`
+Enhances image using Sharp's normalization and sharpening.
+
+### `/api/search-and-replace`
+Replaces objects in the image with AI-generated content using Stability AI's API.
+
+**Request Body:**
+```json
+{
+  "image": "base64_encoded_image",
+  "prompt": "What to replace the object with",
+  "searchPrompt": "What to search for in the image"
+}
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "image": "base64_encoded_transformed_image"
+  },
+  "error": null
+}
+```
+
+## Features
+
+- Image upload and transformation
+- Style conversion (Disney, Pixar, Anime, etc.)
+- Object addition with precise area selection
+- Image mirroring
+- Auto-enhancement using multiple methods
+- Search and replace objects in images
+- Copy transformed images to clipboard
+- Download transformed images
+- Error handling and validation
+- Mobile-friendly interface with touch support
 

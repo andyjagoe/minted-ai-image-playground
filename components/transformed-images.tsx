@@ -9,7 +9,7 @@ interface TransformedImagesProps {
   isTransforming: boolean
   transformingIndex: number | null
   uploadedImage: string
-  onTransform: (type: TransformationType, prompt?: string, mask?: string, rect?: { x: number; y: number; width: number; height: number; }, editedImage?: string, index?: number) => Promise<void>
+  onTransform: (type: TransformationType, prompt?: string, mask?: string, rect?: { x: number; y: number; width: number; height: number; }, editedImage?: string, index?: number, searchPrompt?: string) => Promise<void>
   onRemove: (index: number) => void
   onCopy: (image: string) => void
   onDownload: (image: string) => void
@@ -45,15 +45,18 @@ export function TransformedImages({
             isTransforming={isTransforming && transformingIndex === index}
             disabled={index !== images.length - 1}
             isLastImage={index === images.length - 1}
-            onTransform={async (type, prompt, mask, rect) => {
+            onTransform={async (type, prompt, mask, rect, searchPrompt) => {
               console.log('Debug: TransformedImages onTransform values:', {
                 type,
                 prompt,
                 rect,
+                searchPrompt,
                 hasPrompt: !!prompt,
                 hasRect: !!rect,
+                hasSearchPrompt: !!searchPrompt,
                 requiresPrompt: TRANSFORMATION_CONFIGS[type].requiresPrompt,
-                requiresRect: TRANSFORMATION_CONFIGS[type].requiresRect
+                requiresRect: TRANSFORMATION_CONFIGS[type].requiresRect,
+                requiresSearchPrompt: TRANSFORMATION_CONFIGS[type].requiresSearchPrompt
               })
 
               if (!prompt && TRANSFORMATION_CONFIGS[type].requiresPrompt) {
@@ -64,7 +67,11 @@ export function TransformedImages({
                 console.error("No rectangle selected for transformation type:", type)
                 return Promise.resolve()
               }
-              return onTransform(type, prompt, mask, rect, undefined, index)
+              if (!searchPrompt && TRANSFORMATION_CONFIGS[type].requiresSearchPrompt) {
+                console.error("No search prompt provided for transformation type:", type)
+                return Promise.resolve()
+              }
+              return onTransform(type, prompt, mask, rect, undefined, index, searchPrompt)
             }}
             onRemove={() => onRemove(index)}
             onCopy={() => onCopy(image)}

@@ -20,9 +20,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, Undo2, FlipHorizontal } from "lucide-react"
+import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, Undo2, FlipHorizontal, Search } from "lucide-react"
 import { TransformationType, TRANSFORMATION_CONFIGS, Rect } from "@/lib/types/transformations"
 import { AddItemDialog } from "@/components/add-item-dialog"
+import { SearchReplaceDialog } from "@/components/search-replace-dialog"
 
 interface ImageTransformerProps {
   image: string
@@ -30,7 +31,7 @@ interface ImageTransformerProps {
   showControls?: boolean
   disabled?: boolean
   isTransforming?: boolean
-  onTransform: (type: TransformationType, prompt?: string, mask?: string, rect?: Rect) => Promise<void>
+  onTransform: (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, searchPrompt?: string) => Promise<void>
   onRemove?: () => void
   onCopy?: () => void
   onDownload?: () => void
@@ -52,8 +53,10 @@ export function ImageTransformer({
   error = null,
 }: ImageTransformerProps) {
   const [prompt, setPrompt] = useState("")
+  const [searchPrompt, setSearchPrompt] = useState("")
   const [isCopied, setIsCopied] = useState(false)
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
+  const [isSearchReplaceModalOpen, setIsSearchReplaceModalOpen] = useState(false)
   const [hasTransformed, setHasTransformed] = useState(false)
 
   // Reset hasTransformed and prompt when this becomes the last image
@@ -90,6 +93,17 @@ export function ImageTransformer({
       setHasTransformed(true)
     } catch (error) {
       console.error('Error adding item:', error)
+      setHasTransformed(false)
+    }
+  }
+
+  const handleSearchReplace = async (prompt: string, searchPrompt: string) => {
+    try {
+      console.log('Debug: handleSearchReplace called with:', { prompt, searchPrompt });
+      await onTransform('search-and-replace', prompt, undefined, undefined, searchPrompt)
+      setHasTransformed(true)
+    } catch (error) {
+      console.error('Error in search and replace:', error)
       setHasTransformed(false)
     }
   }
@@ -252,6 +266,10 @@ export function ImageTransformer({
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsSearchReplaceModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search and Replace
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -320,6 +338,15 @@ export function ImageTransformer({
         isTransforming={isTransforming}
         hasTransformed={hasTransformed}
         onAddItem={handleAddItem}
+      />
+
+      <SearchReplaceDialog
+        isOpen={isSearchReplaceModalOpen}
+        onOpenChange={setIsSearchReplaceModalOpen}
+        disabled={disabled}
+        isTransforming={isTransforming}
+        hasTransformed={hasTransformed}
+        onSearchReplace={handleSearchReplace}
       />
     </div>
   )

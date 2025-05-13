@@ -41,7 +41,7 @@ export default function Home() {
     }
   }
 
-  const handleTransform = async (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, editedImage?: string, index?: number) => {
+  const handleTransform = async (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, editedImage?: string, index?: number, searchPrompt?: string) => {
     setError(null) // Clear any previous errors
     const sourceImage = index === undefined 
       ? uploadedImage 
@@ -68,10 +68,13 @@ export default function Home() {
       type,
       prompt,
       rect,
+      searchPrompt,
       hasPrompt: !!prompt,
       hasRect: !!rect,
+      hasSearchPrompt: !!searchPrompt,
       requiresPrompt: config.requiresPrompt,
       requiresRect: config.requiresRect,
+      requiresSearchPrompt: config.requiresSearchPrompt,
       sourceImage: !!sourceImage
     })
 
@@ -81,6 +84,7 @@ export default function Home() {
       prompt,
       mask,
       rect,
+      searchPrompt,
     }
     const payloadSize = new Blob([JSON.stringify(payload)]).size
     console.log('Debug: Request payload size:', {
@@ -259,7 +263,7 @@ export default function Home() {
                   image={uploadedImage}
                   showControls={true}
                   isTransforming={isTransforming && transformingIndex === null}
-                  onTransform={(type, prompt, mask, rect) => handleTransform(type, prompt, mask, rect)}
+                  onTransform={(type, prompt, mask, rect, searchPrompt) => handleTransform(type, prompt, mask, rect, undefined, undefined, searchPrompt)}
                   onRemove={() => {
                     setUploadedImage(null)
                     setTransformedImages([])
