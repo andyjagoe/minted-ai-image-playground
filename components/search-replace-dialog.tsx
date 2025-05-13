@@ -18,6 +18,7 @@ interface SearchReplaceDialogProps {
   isTransforming?: boolean
   hasTransformed?: boolean
   onSearchReplace: (prompt: string, searchPrompt: string) => Promise<void>
+  onPromptChange?: (prompt: string) => void
 }
 
 export function SearchReplaceDialog({
@@ -27,15 +28,18 @@ export function SearchReplaceDialog({
   isTransforming = false,
   hasTransformed = false,
   onSearchReplace,
+  onPromptChange,
 }: SearchReplaceDialogProps) {
   const [prompt, setPrompt] = useState("")
   const [searchPrompt, setSearchPrompt] = useState("")
 
   const handleSearchReplace = async () => {
     if (prompt.trim() && searchPrompt.trim()) {
+      const formattedPrompt = `Replace ${searchPrompt.trim()} with ${prompt.trim()}`
       setPrompt("")
       setSearchPrompt("")
       onOpenChange(false)
+      onPromptChange?.(formattedPrompt)
       await onSearchReplace(prompt, searchPrompt)
     }
   }

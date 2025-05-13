@@ -338,6 +338,7 @@ export function ImageTransformer({
         isTransforming={isTransforming}
         hasTransformed={hasTransformed}
         onAddItem={handleAddItem}
+        onPromptChange={setPrompt}
       />
 
       <SearchReplaceDialog
@@ -347,6 +348,7 @@ export function ImageTransformer({
         isTransforming={isTransforming}
         hasTransformed={hasTransformed}
         onSearchReplace={handleSearchReplace}
+        onPromptChange={setPrompt}
       />
     </div>
   )

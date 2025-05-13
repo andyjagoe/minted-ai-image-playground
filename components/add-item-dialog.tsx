@@ -21,6 +21,7 @@ interface AddItemDialogProps {
   isTransforming?: boolean
   hasTransformed?: boolean
   onAddItem: (prompt: string, rect: Rect) => Promise<void>
+  onPromptChange?: (prompt: string) => void
 }
 
 export function AddItemDialog({
@@ -31,6 +32,7 @@ export function AddItemDialog({
   isTransforming = false,
   hasTransformed = false,
   onAddItem,
+  onPromptChange,
 }: AddItemDialogProps) {
   const [itemToAdd, setItemToAdd] = useState("")
   const [isDrawing, setIsDrawing] = useState(false)
@@ -186,6 +188,9 @@ export function AddItemDialog({
       setItemToAdd("")
       setRect(null)
       onOpenChange(false)
+      
+      // Update the prompt in the parent component
+      onPromptChange?.(formattedPrompt)
       
       // Get the canvas and create a new image with proper orientation
       const canvas = canvasRef.current
