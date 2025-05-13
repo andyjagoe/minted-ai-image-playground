@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,15 +13,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, Undo2, FlipHorizontal, Search } from "lucide-react"
-import { TransformationType, TRANSFORMATION_CONFIGS, Rect } from "@/lib/types/transformations"
+import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, FlipHorizontal, Search } from "lucide-react"
+import { TransformationType, Rect } from "@/lib/types/transformations"
 import { AddItemDialog } from "@/components/add-item-dialog"
 import { SearchReplaceDialog } from "@/components/search-replace-dialog"
 
@@ -264,7 +257,7 @@ export function ImageTransformer({
               <DropdownMenuContent align="center">
                 <DropdownMenuItem onClick={() => setIsAddItemModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Item
+                  Add Item (Inpaint)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsSearchReplaceModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
                   <Search className="h-4 w-4 mr-2" />
