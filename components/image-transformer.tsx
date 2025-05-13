@@ -321,13 +321,13 @@ export function ImageTransformer({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={() => handleStyleConvert("Disney Style")} disabled={disabled || isTransforming || hasTransformed}>
+                <DropdownMenuItem onClick={() => handleStyleConvert("Disney")} disabled={disabled || isTransforming || hasTransformed}>
                   Disney Style
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStyleConvert("Pixar")} disabled={disabled || isTransforming || hasTransformed}>
                   Pixar
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStyleConvert("Anime Style")} disabled={disabled || isTransforming || hasTransformed}>
+                <DropdownMenuItem onClick={() => handleStyleConvert("Anime")} disabled={disabled || isTransforming || hasTransformed}>
                   Anime Style
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleStyleConvert("Ghibli")} disabled={disabled || isTransforming || hasTransformed}>
