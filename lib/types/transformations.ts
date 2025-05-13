@@ -3,6 +3,7 @@ export type TransformationType =
   | "mirror"
   | "inpaint" 
   | "auto-enhance"
+  | "auto-enhance-sharp"
 
 export interface Rect {
   x: number
@@ -66,5 +67,12 @@ export const TRANSFORMATION_CONFIGS: Record<TransformationType, {
     requiresRect: false,
     label: "Auto-Enhance",
     description: "Automatically enhance image quality and colors"
+  },
+  "auto-enhance-sharp": {
+    endpoint: "/api/auto-enhance/sharp",
+    requiresPrompt: false,
+    requiresRect: false,
+    label: "Auto-Enhance (Sharp)",
+    description: "Enhance image using Sharp's normalization and sharpening"
   }
 } 

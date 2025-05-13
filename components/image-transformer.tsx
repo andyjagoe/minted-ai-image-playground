@@ -9,6 +9,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
 import {
   Dialog,
@@ -394,12 +397,30 @@ export function ImageTransformer({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={() => {
-                  onTransform('auto-enhance')
-                }} disabled={disabled || isTransforming || hasTransformed}>
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Auto-Enhance
-                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger disabled={disabled || isTransforming || hasTransformed}>
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Auto-Enhance
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => {
+                      const sharpPrompt = 'Enhanced image using Sharp (normalization and sharpening)'
+                      setPrompt(sharpPrompt)
+                      onTransform('auto-enhance-sharp', sharpPrompt)
+                    }} disabled={disabled || isTransforming || hasTransformed}>
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      Sharp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const geminiPrompt = 'Enhanced image using Gemini 2.0 (AI-powered enhancement)'
+                      setPrompt(geminiPrompt)
+                      onTransform('auto-enhance', geminiPrompt)
+                    }} disabled={disabled || isTransforming || hasTransformed}>
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      Gemini 2.0
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuItem onClick={() => {
                   const mirrorPrompt = 'Flip the image horizontally'
                   setPrompt(mirrorPrompt)
