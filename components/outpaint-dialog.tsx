@@ -25,7 +25,7 @@ interface OutpaintDialogProps {
   disabled?: boolean
   isTransforming?: boolean
   hasTransformed?: boolean
-  onOutpaint: (left: number, down: number, prompt?: string, style_preset?: string) => Promise<void>
+  onOutpaint: (left: number, right: number, up: number, down: number, prompt?: string, style_preset?: string) => Promise<void>
   onPromptChange?: (prompt: string) => void
 }
 
@@ -59,6 +59,8 @@ export function OutpaintDialog({
   onPromptChange,
 }: OutpaintDialogProps) {
   const [left, setLeft] = useState(0)
+  const [right, setRight] = useState(0)
+  const [up, setUp] = useState(0)
   const [down, setDown] = useState(0)
   const [prompt, setPrompt] = useState("")
   const [stylePreset, setStylePreset] = useState<string>("")
@@ -67,6 +69,8 @@ export function OutpaintDialog({
   useEffect(() => {
     if (isOpen) {
       setLeft(0)
+      setRight(0)
+      setUp(0)
       setDown(0)
       setPrompt("")
       setStylePreset("")
@@ -75,10 +79,16 @@ export function OutpaintDialog({
 
   const handleOutpaint = async () => {
     const styleText = stylePreset ? ` in ${stylePreset} style` : ''
-    const formattedPrompt = `Extend image ${left}px left and ${down}px down${prompt ? ` with ${prompt}` : ''}${styleText}`
+    const directions = []
+    if (left > 0) directions.push(`${left}px left`)
+    if (right > 0) directions.push(`${right}px right`)
+    if (up > 0) directions.push(`${up}px up`)
+    if (down > 0) directions.push(`${down}px down`)
+    
+    const formattedPrompt = `Extend image ${directions.join(', ')}${prompt ? ` with ${prompt}` : ''}${styleText}`
     onOpenChange(false)
     onPromptChange?.(formattedPrompt)
-    await onOutpaint(left, down, prompt || undefined, stylePreset || undefined)
+    await onOutpaint(left, right, up, down, prompt || undefined, stylePreset || undefined)
   }
 
   return (
@@ -90,7 +100,7 @@ export function OutpaintDialog({
         
         <div className="space-y-6 overflow-y-auto flex-1 px-1 pb-4">
           <div className="space-y-4">
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label htmlFor="left" className="text-sm font-medium">
@@ -106,6 +116,46 @@ export function OutpaintDialog({
                     step={1}
                     value={[left]}
                     onValueChange={([value]) => setLeft(value)}
+                    disabled={disabled || isTransforming || hasTransformed}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="right" className="text-sm font-medium">
+                    Extend Right
+                  </label>
+                  <span className="text-sm text-muted-foreground">{right}px</span>
+                </div>
+                <div className="px-1">
+                  <Slider
+                    id="right"
+                    min={0}
+                    max={2000}
+                    step={1}
+                    value={[right]}
+                    onValueChange={([value]) => setRight(value)}
+                    disabled={disabled || isTransforming || hasTransformed}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="up" className="text-sm font-medium">
+                    Extend Up
+                  </label>
+                  <span className="text-sm text-muted-foreground">{up}px</span>
+                </div>
+                <div className="px-1">
+                  <Slider
+                    id="up"
+                    min={0}
+                    max={2000}
+                    step={1}
+                    value={[up]}
+                    onValueChange={([value]) => setUp(value)}
                     disabled={disabled || isTransforming || hasTransformed}
                   />
                 </div>
@@ -186,6 +236,8 @@ export function OutpaintDialog({
               onClick={() => {
                 onOpenChange(false)
                 setLeft(0)
+                setRight(0)
+                setUp(0)
                 setDown(0)
                 setPrompt("")
                 setStylePreset("")

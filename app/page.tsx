@@ -49,7 +49,7 @@ export default function Home() {
     editedImage?: string,
     index?: number,
     searchPrompt?: string,
-    outpaintParams?: { left: number; down: number; style_preset?: string }
+    outpaintParams?: { left: number; right: number; up: number; down: number; style_preset?: string }
   ) => {
     setError(null) // Clear any previous errors
     const sourceImage = index === undefined 
@@ -118,6 +118,8 @@ export default function Home() {
             body: JSON.stringify({
               image: sourceImage,
               left: outpaintParams?.left,
+              right: outpaintParams?.right,
+              up: outpaintParams?.up,
               down: outpaintParams?.down,
               prompt: prompt,
               style_preset: outpaintParams?.style_preset,

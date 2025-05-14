@@ -33,7 +33,7 @@ interface ImageTransformerProps {
     editedImage?: string,
     index?: number,
     searchPrompt?: string,
-    outpaintParams?: { left: number; down: number; style_preset?: string }
+    outpaintParams?: { left: number; right: number; up: number; down: number; style_preset?: string }
   ) => Promise<void>
   onRemove?: () => void
   onCopy?: () => void
@@ -112,9 +112,9 @@ export function ImageTransformer({
     }
   }
 
-  const handleOutpaint = async (left: number, down: number, prompt?: string, style_preset?: string) => {
+  const handleOutpaint = async (left: number, right: number, up: number, down: number, prompt?: string, style_preset?: string) => {
     try {
-      await onTransform('outpaint', prompt, undefined, undefined, undefined, undefined, undefined, { left, down, style_preset })
+      await onTransform('outpaint', prompt, undefined, undefined, undefined, undefined, undefined, { left, right, up, down, style_preset })
       setHasTransformed(true)
     } catch (error) {
       console.error('Error in outpaint:', error)

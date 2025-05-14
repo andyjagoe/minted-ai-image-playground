@@ -186,25 +186,29 @@ export async function POST(request: NextRequest) {
       sizeInMB: bodySize / (1024 * 1024)
     });
 
-    const { image, left, down, prompt, style_preset } = body;
+    const { image, left, right, up, down, prompt, style_preset } = body;
 
     console.log('Debug: Request parameters:', {
       hasImage: !!image,
       left,
+      right,
+      up,
       down,
       prompt,
       style_preset,
       imageLength: image?.length
     });
 
-    if (!image || typeof left !== 'number' || typeof down !== 'number') {
+    if (!image || typeof left !== 'number' || typeof right !== 'number' || typeof up !== 'number' || typeof down !== 'number') {
       console.error('Debug: Missing or invalid parameters:', {
         hasImage: !!image,
         left,
+        right,
+        up,
         down
       });
       return NextResponse.json(
-        { error: "Image, left, and down values are required" },
+        { error: "Image, left, right, up, and down values are required" },
         { status: 400 }
       );
     }
@@ -253,6 +257,8 @@ export async function POST(request: NextRequest) {
       contentType: 'image/png',
     });
     formData.append('left', left.toString());
+    formData.append('right', right.toString());
+    formData.append('up', up.toString());
     formData.append('down', down.toString());
     formData.append('output_format', 'webp');
     
