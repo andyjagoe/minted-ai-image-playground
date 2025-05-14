@@ -4,9 +4,10 @@ A Next.js application that provides AI-powered image manipulation capabilities u
 
 ## Features
 
-- Image inpainting and serach and replace using Stable Diffusion 3.0/3.5 (via Stability AI)
+- Image inpainting and search and replace using Stable Diffusion 3.0/3.5 (via Stability AI)
 - Image transformation using OpenAI's gpt-image-1
 - Image auto-enhancement using Gemini's gemini-2.0-flash-preview-image-generation
+- Image outpainting (extending images in any direction) using Stability AI
 - Basic image manipulation (mirroring)
 - HEIC to JPEG conversion
 - Automatic image resizing and optimization
@@ -130,6 +131,44 @@ The enhancement process includes:
 }
 ```
 
+### Image Outpainting (Stability AI)
+
+**Endpoint:** `/api/outpaint`
+
+**Method:** `POST`
+
+**Request Body:**
+```typescript
+{
+  image: string;      // Base64 encoded image
+  left: number;       // Pixels to extend left (0-2000)
+  right: number;      // Pixels to extend right (0-2000)
+  up: number;         // Pixels to extend up (0-2000)
+  down: number;       // Pixels to extend down (0-2000)
+  prompt?: string;    // Optional description of what to generate in extended areas
+  style_preset?: string; // Optional style preset for the extended areas
+}
+```
+
+**Available Style Presets:**
+- 3D Model
+- Analog Film
+- Anime
+- Cinematic
+- Comic Book
+- Digital Art
+- Enhance
+- Fantasy Art
+- Isometric
+- Line Art
+- Low Poly
+- Modeling Compound
+- Neon Punk
+- Origami
+- Photographic
+- Pixel Art
+- Tile Texture
+
 ### Response Format
 
 All endpoints return responses in the following format:
@@ -190,6 +229,9 @@ Creates a mirrored version of the image.
 ### `/api/inpaint/stability-ai`
 Replaces a selected area with AI-generated content using Stability AI's API.
 
+### `/api/outpaint`
+Extends an image in any direction with AI-generated content using Stability AI's API.
+
 ### `/api/auto-enhance/gemini-2.0`
 Automatically enhances image quality and colors using Google's Gemini 2.0 API.
 
@@ -224,6 +266,7 @@ Replaces objects in the image with AI-generated content using Stability AI's API
 - Style conversion (Disney, Pixar, Anime, etc.)
 - Object addition with precise area selection
 - Image mirroring
+- Image outpainting with directional control
 - Auto-enhancement using multiple methods
 - Search and replace objects in images
 - Copy transformed images to clipboard
