@@ -13,10 +13,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, FlipHorizontal, Search } from "lucide-react"
+import { Wand2, Scissors, Trash2, Copy, Download, Palette, Plus, FlipHorizontal, Search, ZoomOut } from "lucide-react"
 import { TransformationType, Rect } from "@/lib/types/transformations"
 import { AddItemDialog } from "@/components/add-item-dialog"
 import { SearchReplaceDialog } from "@/components/search-replace-dialog"
+import { OutpaintDialog } from "@/components/outpaint-dialog"
 
 interface ImageTransformerProps {
   image: string
@@ -24,7 +25,16 @@ interface ImageTransformerProps {
   showControls?: boolean
   disabled?: boolean
   isTransforming?: boolean
-  onTransform: (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, searchPrompt?: string) => Promise<void>
+  onTransform: (
+    type: TransformationType,
+    prompt?: string,
+    mask?: string,
+    rect?: Rect,
+    editedImage?: string,
+    index?: number,
+    searchPrompt?: string,
+    outpaintParams?: { left: number; down: number; style_preset?: string }
+  ) => Promise<void>
   onRemove?: () => void
   onCopy?: () => void
   onDownload?: () => void
@@ -50,6 +60,7 @@ export function ImageTransformer({
   const [isCopied, setIsCopied] = useState(false)
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false)
   const [isSearchReplaceModalOpen, setIsSearchReplaceModalOpen] = useState(false)
+  const [isOutpaintModalOpen, setIsOutpaintModalOpen] = useState(false)
   const [hasTransformed, setHasTransformed] = useState(false)
 
   // Reset hasTransformed and prompt when this becomes the last image
@@ -93,10 +104,20 @@ export function ImageTransformer({
   const handleSearchReplace = async (prompt: string, searchPrompt: string) => {
     try {
       console.log('Debug: handleSearchReplace called with:', { prompt, searchPrompt });
-      await onTransform('search-and-replace', prompt, undefined, undefined, searchPrompt)
+      await onTransform('search-and-replace', prompt, undefined, undefined, undefined, undefined, searchPrompt)
       setHasTransformed(true)
     } catch (error) {
       console.error('Error in search and replace:', error)
+      setHasTransformed(false)
+    }
+  }
+
+  const handleOutpaint = async (left: number, down: number, prompt?: string, style_preset?: string) => {
+    try {
+      await onTransform('outpaint', prompt, undefined, undefined, undefined, undefined, undefined, { left, down, style_preset })
+      setHasTransformed(true)
+    } catch (error) {
+      console.error('Error in outpaint:', error)
       setHasTransformed(false)
     }
   }
@@ -255,13 +276,20 @@ export function ImageTransformer({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
+                <DropdownMenuItem onClick={() => setIsSearchReplaceModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search and Replace
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setIsAddItemModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item (Inpaint)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsSearchReplaceModalOpen(true)} disabled={disabled || isTransforming || hasTransformed}>
-                  <Search className="h-4 w-4 mr-2" />
-                  Search and Replace
+                <DropdownMenuItem onClick={() => {
+                  setHasTransformed(false)
+                  setIsOutpaintModalOpen(true)
+                }} disabled={disabled || isTransforming || hasTransformed}>
+                  <ZoomOut className="h-4 w-4 mr-2" />
+                  Extend Image (Outpaint)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -341,6 +369,16 @@ export function ImageTransformer({
         isTransforming={isTransforming}
         hasTransformed={hasTransformed}
         onSearchReplace={handleSearchReplace}
+        onPromptChange={setPrompt}
+      />
+
+      <OutpaintDialog
+        isOpen={isOutpaintModalOpen}
+        onOpenChange={setIsOutpaintModalOpen}
+        disabled={disabled}
+        isTransforming={isTransforming}
+        hasTransformed={hasTransformed}
+        onOutpaint={handleOutpaint}
         onPromptChange={setPrompt}
       />
     </div>

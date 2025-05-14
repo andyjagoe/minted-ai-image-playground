@@ -41,7 +41,16 @@ export default function Home() {
     }
   }
 
-  const handleTransform = async (type: TransformationType, prompt?: string, mask?: string, rect?: Rect, editedImage?: string, index?: number, searchPrompt?: string) => {
+  const handleTransform = async (
+    type: TransformationType,
+    prompt?: string,
+    mask?: string,
+    rect?: Rect,
+    editedImage?: string,
+    index?: number,
+    searchPrompt?: string,
+    outpaintParams?: { left: number; down: number; style_preset?: string }
+  ) => {
     setError(null) // Clear any previous errors
     const sourceImage = index === undefined 
       ? uploadedImage 
@@ -98,13 +107,32 @@ export default function Home() {
     setTransformingIndex(index ?? null)
 
     try {
-      const response = await fetch(config.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
+      let response;
+      switch (type) {
+        case "outpaint":
+          response = await fetch("/api/outpaint", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              image: sourceImage,
+              left: outpaintParams?.left,
+              down: outpaintParams?.down,
+              prompt: prompt,
+              style_preset: outpaintParams?.style_preset,
+            }),
+          });
+          break;
+        default:
+          response = await fetch(config.endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          })
+      }
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -263,7 +291,8 @@ export default function Home() {
                   image={uploadedImage}
                   showControls={true}
                   isTransforming={isTransforming && transformingIndex === null}
-                  onTransform={(type, prompt, mask, rect, searchPrompt) => handleTransform(type, prompt, mask, rect, undefined, undefined, searchPrompt)}
+                  onTransform={(type, prompt, mask, rect, editedImage, index, searchPrompt, outpaintParams) => 
+                    handleTransform(type, prompt, mask, rect, editedImage, index, searchPrompt, outpaintParams)}
                   onRemove={() => {
                     setUploadedImage(null)
                     setTransformedImages([])

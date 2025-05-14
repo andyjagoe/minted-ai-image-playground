@@ -5,6 +5,7 @@ export type TransformationType =
   | "auto-enhance"
   | "auto-enhance-sharp"
   | "search-and-replace"
+  | "outpaint"
 
 export interface Rect {
   x: number
@@ -33,6 +34,7 @@ export interface TransformationConfig {
   requiresMask?: boolean
   requiresRect?: boolean
   requiresSearchPrompt?: boolean
+  requiresLeftDown?: boolean
   label: string
   description: string
 }
@@ -80,5 +82,13 @@ export const TRANSFORMATION_CONFIGS: Record<TransformationType, TransformationCo
     requiresSearchPrompt: true,
     label: "Search and Replace",
     description: "Replace objects in the image with AI"
+  },
+  outpaint: {
+    endpoint: "/api/outpaint",
+    requiresPrompt: false,
+    requiresRect: false,
+    requiresLeftDown: true,
+    label: "Zoom Out (Outpaint)",
+    description: "Extend the image beyond its boundaries using AI"
   }
 } 
